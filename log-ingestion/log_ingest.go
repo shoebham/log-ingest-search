@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -40,9 +41,32 @@ func handleLogs(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+
 	fmt.Printf("Received log entry: %+v\n", logEntry)
+	writeLogsToFile(logEntry)
+	// Respond with success message
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Log received and written to file successfully"))
+}
+func writeLogsToFile(logEntry LogEntry){
+	fileName := "received_logs.json"
+	logs,err := json.MarshalIndent(logEntry,""," ")
+	if err!=nil{
+		log.Println("Error Marshalling ",err)
+		return
+	}
 
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
 
+	// Append the log entry to the file
+	if _, err := file.WriteString(string(logs) + "\n"); err != nil {
+		log.Println("Error writing to file:", err)
+	}
 }
 
 func greet(w http.ResponseWriter, r *http.Request){
