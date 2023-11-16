@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
+	"net/http"
 	"time"
 )
 
@@ -28,35 +28,39 @@ func ParseLog(log string) (LogEntry,error){
 	if err!= nil{
 		return LogEntry{},err
 	}
-	return logEntry,nil
+	return logEntry,nil	
+}
+
+func handleLogs(w http.ResponseWriter, r *http.Request){
+	fmt.Print("inside handle logs\n")
+	var logEntry LogEntry
+	err := json.NewDecoder(r.Body).Decode(&logEntry)
+	if err!=nil{
+		http.Error(w,"Error parsing log entry",http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("Received log entry: %+v\n", logEntry)
+
+
+}
+
+func greet(w http.ResponseWriter, r *http.Request){
+	
+	fmt.Fprintf(w,"Hi")
 	
 }
 
+
 func main(){
 
-	file, err := os.Open("template_log.json")
-	if err!=nil{
-		log.Fatal(err)
-	}
+	http.HandleFunc("/",greet)
+	http.HandleFunc("/logs",handleLogs)
 
-	defer file.Close()
+	fmt.Print("Listenting on port 3000")
 
-	buf := make([]byte, 1024)
-	var logs string
-	i:=1
-	for{
-		n,err := file.Read(buf)
-		if n>0{
-			logs += string(buf[:n])
-			i++
-		}
-		if err!=nil{
-			break
-		}
-	}
-	parsedLog,err := ParseLog(logs)
+	err := http.ListenAndServe(":3000",nil)
 	if err!=nil{
-		log.Fatal(err)
+		log.Fatal("Server Error",err)
 	}
-	fmt.Print(parsedLog.Message)
 }
