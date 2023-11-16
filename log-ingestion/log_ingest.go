@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 type LogEntry struct {
@@ -34,6 +37,8 @@ func ParseLog(log string) (LogEntry,error){
 
 func handleLogs(w http.ResponseWriter, r *http.Request){
 	fmt.Print("inside handle logs\n")
+	connectDB()
+
 	var logEntry LogEntry
 	err := json.NewDecoder(r.Body).Decode(&logEntry)
 	if err!=nil{
@@ -48,6 +53,7 @@ func handleLogs(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Log received and written to file successfully"))
 }
+
 func writeLogsToFile(logEntry LogEntry){
 	fileName := "received_logs.json"
 	logs,err := json.MarshalIndent(logEntry,""," ")
@@ -62,7 +68,6 @@ func writeLogsToFile(logEntry LogEntry){
 		return
 	}
 	defer file.Close()
-
 	// Append the log entry to the file
 	if _, err := file.WriteString(string(logs) + "\n"); err != nil {
 		log.Println("Error writing to file:", err)
@@ -76,6 +81,22 @@ func greet(w http.ResponseWriter, r *http.Request){
 }
 
 
+func connectDB(){
+	connStr:="user=postgres dbname=temp sslmode=disable"
+	db, err := sql.Open("postgres",connStr)
+	if err!=nil{
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+
+	if err != nil{
+		log.Fatal(err)
+	}
+	fmt.Println("Connected to Postgresql")
+
+}
 func main(){
 
 	http.HandleFunc("/",greet)
