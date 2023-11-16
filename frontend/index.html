@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="columnBox">
+        <label for="columns">Metric:</label>
+        <select id="columns">
+            <option disabled selected value="Loading...">Loading...</option>
+        </select>
+    </div>
+</body>
+
+<script>
+    var columnsjson
+    window.onload = (async () => {
+        const res = await fetch("http://localhost:3000/columns");
+        columnsjson = await res.json();
+        console.log(columnsjson);
+        populateDropdown();
+
+    })
+
+    function populateDropdown() {
+        const columnSelect = document.getElementById("columns");
+        columnSelect.innerHTML = "";
+        columnsjson.columns.forEach(element => {
+            const columnOption = `<option value=${element}> ${element}</option>`;
+            columnSelect.innerHTML += columnOption;
+        });
+    }
+</script>
+
+</html>
