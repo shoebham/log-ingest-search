@@ -45,19 +45,20 @@ func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type SearchCriteria struct {
-	Criteria []SearchParam `json:"criteria"`
+	Criteria []interface{} `json:"criteria"`
 }
 
+
 type SearchParam struct {
+
 	Column  string `json:"column"`
 	Operand string `json:"operand"`
 	Value   string `json:"value"`
-	Logical string `json:"logical"` // AND/OR
 }
 
 func search(w http.ResponseWriter, r *http.Request){
 	var searchCriteria SearchCriteria
-	
+
 	err := json.NewDecoder(r.Body).Decode(&searchCriteria)
 	if err != nil {
 		http.Error(w, "Error parsing search criteria", http.StatusBadRequest)
@@ -65,7 +66,11 @@ func search(w http.ResponseWriter, r *http.Request){
 	}
 
 	query := constructQuery(searchCriteria)
+	fmt.Println("QUERY:", query)
+
+
 	rows, err := db.Query(query)
+	fmt.Println("QUERY: ",query )
 	if err != nil {
 		http.Error(w, "Error executing query", http.StatusInternalServerError)
 		return
@@ -74,8 +79,13 @@ func search(w http.ResponseWriter, r *http.Request){
 
 	results := processQueryResults(rows)
 
+	// Include the count in the response data
+	responseData := map[string]interface{}{
+		"count":  len(results),
+		"result": results,
+	}
 	// Respond with the search results
-	jsonResponse, err := json.Marshal(results)
+	jsonResponse, err := json.Marshal(responseData)
 	if err != nil {
 		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
 		return
@@ -89,14 +99,26 @@ func search(w http.ResponseWriter, r *http.Request){
 
 func constructQuery(searchCriteria SearchCriteria) string {
 	query := "SELECT * FROM logs WHERE "
-	for i, param := range searchCriteria.Criteria {
+	for i, criteria := range searchCriteria.Criteria {
 		if i > 0 {
-			query += fmt.Sprintf(" %s ", param.Logical)
+			// Check if the criteria is a logical operator (AND/OR)
+			if logical, ok := criteria.(string); ok {
+				query += fmt.Sprintf(" %s ", logical)
+				continue
+			}
 		}
-		query += fmt.Sprintf("%s %s '%s'", param.Column, param.Operand, param.Value)
-		if i+1 < len(searchCriteria.Criteria) {
-			query += " AND "
+
+		param, ok := criteria.(map[string]interface{})
+		if !ok {
+			log.Println("Invalid search parameter format")
+			continue
 		}
+
+		column, _ := param["column"].(string)
+		operand, _ := param["operand"].(string)
+		value, _ := param["value"].(string)
+
+		query += fmt.Sprintf("%s %s '%s'", column, operand, value)
 	}
 	return query
 }

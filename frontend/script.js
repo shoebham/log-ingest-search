@@ -14,14 +14,26 @@ async function fetchColumns(select) {
     console.error("Error:", error);
   }
 }
-
+var isFirst = true;
 // Function to add new search parameters
 function addParam() {
   const searchParameters = document.getElementById("searchParameters");
 
   const newSearchParam = document.createElement("div");
   newSearchParam.classList.add("searchParam");
-
+  if (!isFirst) {
+    const logicalSelect = document.createElement("select");
+    logicalSelect.classList.add("logical");
+    const and = document.createElement("option");
+    and.value = "AND";
+    and.text = "AND";
+    logicalSelect.appendChild(and);
+    const or = document.createElement("option");
+    or.value = "OR";
+    or.text = "OR";
+    logicalSelect.appendChild(or);
+    newSearchParam.appendChild(logicalSelect);
+  }
   const columnSelect = document.createElement("select");
   columnSelect.classList.add("column");
   columnSelect.onchange = () => fetchColumns(columnSelect);
@@ -49,8 +61,9 @@ function addParam() {
   removeButton.onclick = function () {
     removeParam(this);
   };
-  newSearchParam.appendChild(removeButton);
+  if (!isFirst) newSearchParam.appendChild(removeButton);
 
+  isFirst = false;
   searchParameters.appendChild(newSearchParam);
 
   fetchColumns(columnSelect);
@@ -58,6 +71,7 @@ function addParam() {
 
 // Function to remove a search parameter
 function removeParam(button) {
+  console.log(button);
   const searchParam = button.parentElement;
   searchParam.remove();
 }
@@ -71,9 +85,13 @@ function searchLogs() {
     const column = paramDiv.querySelector(".column").value;
     const operand = paramDiv.querySelector(".operand").value; // Add operand selection
     const value = paramDiv.querySelector(".value").value;
-    const logical = "AND";
+    const logical = paramDiv.querySelector(".logical");
+    if (logical) {
+      const logicalValue = logical.value;
+      criteria.push(logicalValue);
+    }
     if (column && operand && value) {
-      criteria.push({ column, operand, value, logical }); // Include operand in the search parameters
+      criteria.push({ column, operand, value }); // Include operand in the search parameters
     }
   });
 
@@ -94,6 +112,9 @@ function searchLogs() {
 }
 
 function displayLogs(logs) {
+  var count = logs.count;
+  logs = logs.result;
+  console.log("logs", logs);
   const logsDiv = document.getElementById("logs");
   logsDiv.innerHTML = "";
 
