@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
+
 	_ "github.com/lib/pq"
 )
 
@@ -35,11 +37,47 @@ func ParseLog(log string) (LogEntry,error){
 	return logEntry,nil	
 }
 var db *sql.DB
-
+var sqliteDB *sql.DB 
 
 func initDbthings(){
 	connectDB()
 	makeTable()
+	connectSQLiteDB()
+	makeTableSQLite()
+}
+func connectSQLiteDB() {
+	db, err := sql.Open("sqlite3", "./temp.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	sqliteDB = db
+	fmt.Println("Connected to sqlite3")
+	
+}
+func makeTableSQLite(){
+	// CREATE TABLE IF NOT EXISTS logs (id SERIAL PRIMARY KEY,level TEXT,message TEXT,resourceId TEXT,timestamp TIMESTAMP,traceId TEXT,spanId TEXT,"commit" TEXT,metadata_parentResourceId TEXT);
+	_, err := sqliteDB.Exec(`CREATE TABLE IF NOT EXISTS logs (
+		id SERIAL PRIMARY KEY,
+		level TEXT,
+		message TEXT,
+		resourceId TEXT,
+		timestamp TIMESTAMP,
+		traceId TEXT,
+		spanId TEXT,
+		"commit" TEXT,
+		metadata_parentResourceId TEXT
+	);`)
+	if err != nil {
+		log.Fatal(err)
+	}
+		var count int
+	err = sqliteDB.QueryRow("SELECT COUNT(*) FROM logs").Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("Number of rows: %d\n", count)
 }
 func handleLogs(w http.ResponseWriter, r *http.Request){
 	fmt.Print("inside handle logs\n")
@@ -160,6 +198,7 @@ func main(){
 	http.HandleFunc("/logs",handleLogs)
 	http.HandleFunc("/columns",fetchColumnsHandler)
 	http.HandleFunc("/search",search)
+	http.HandleFunc("/searchRealTime", debounceAPIRequest(realTimeSearch))
 	fmt.Println("Listenting on port 3000")
 	handler := corsMiddleware(http.DefaultServeMux)
 
@@ -176,5 +215,6 @@ func main(){
 		log.Fatal("Server Error: ", err)
 	}
 	defer db.Close()
+	defer sqliteDB.Close()
 
 }

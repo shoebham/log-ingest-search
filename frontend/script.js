@@ -270,3 +270,32 @@ addParam();
 // Initialize the functions
 updateTimeRange();
 handleCustomTimeSelection();
+
+const searchLogsRealtime = async () => {
+  const query = searchInput.value.trim(); // Get search query from input field
+
+  try {
+    const response = await axios.get(
+      `http://localhost:3000/searchRealTime?query=${query}`
+    );
+    const logs = response.data; // Assuming logs are received in an array format
+
+    // Display the filtered logs
+    displayLogs(logs);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+let debounceTimer;
+
+// Function to handle debouncing of search input
+const debounceSearch = () => {
+  clearTimeout(debounceTimer); // Clear previous timer
+
+  debounceTimer = setTimeout(() => {
+    searchLogsRealtime(); // Trigger search function after debounce delay (e.g., 500ms)
+  }, 500); // Adjust debounce delay as needed (e.g., 500ms)
+};
+
+const searchInput = document.getElementById("searchInput");
+searchInput.addEventListener("input", debounceSearch);

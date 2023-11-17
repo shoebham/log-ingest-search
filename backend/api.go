@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
+	"time"
 )
 
 func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +57,99 @@ type SearchParam struct {
 	Operand string `json:"operand"`
 	Value   string `json:"value"`
 }
+var (
+	lastRequest   time.Time
+	lastRequestMu sync.Mutex
+)
 
+const debounceDuration = 500 * time.Millisecond // Define your desired debounce duration
+
+// debounceAPIRequest ensures that the API endpoint is not called more frequently than the debounce duration
+func debounceAPIRequest(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lastRequestMu.Lock()
+		defer lastRequestMu.Unlock()
+
+		// Calculate the duration since the last request
+		elapsed := time.Since(lastRequest)
+
+		// If the duration is less than the debounce duration, wait
+		if elapsed < debounceDuration {
+			time.Sleep(debounceDuration - elapsed)
+		}
+
+		lastRequest = time.Now()
+
+		// Process the request
+		next(w, r)
+	})
+}
+func realTimeSearch(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		http.Error(w, "Empty query", http.StatusBadRequest)
+		return
+	}
+
+	// Perform real-time search logic using the 'query'...
+	
+	// Execute the search query
+	rows, err := sqliteDB.Query("SELECT * FROM logs WHERE message LIKE ?", "%"+query+"%")
+	if err != nil {
+		http.Error(w, "Error executing search query", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Process query results
+	var results []map[string]interface{}
+
+	columns, _ := rows.Columns()
+	count := len(columns)
+	values := make([]interface{}, count)
+	valuePointers := make([]interface{}, count)
+	for i := range columns {
+		valuePointers[i] = &values[i]
+	}
+
+	for rows.Next() {
+		rows.Scan(valuePointers...)
+		entry := make(map[string]interface{})
+		for i, col := range columns {
+			val := values[i]
+			b, ok := val.([]byte)
+			if ok {
+				entry[col] = string(b)
+			} else {
+				entry[col] = val
+			}
+		}
+		results = append(results, entry)
+	}
+
+	// Respond with the search results
+	responseData := map[string]interface{}{
+		"count":  len(results),
+		"result": results,
+	}
+
+	jsonResponse, err := json.Marshal(responseData)
+	if err != nil {
+		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+
+
+	// // Example: Respond with the search query result (replace this with your logic)
+	// response := fmt.Sprintf("Real-time search query: %s", query)
+	// w.Header().Set("Content-Type", "text/plain")
+	// w.WriteHeader(http.StatusOK)
+	// w.Write([]byte(response))
+}
 func search(w http.ResponseWriter, r *http.Request){
 	var searchCriteria SearchCriteria
 
@@ -66,7 +160,7 @@ func search(w http.ResponseWriter, r *http.Request){
 	}
 
 	query := constructQuery(searchCriteria)
-	fmt.Println("QUERY:", query)
+
 
 
 	rows, err := db.Query(query)
