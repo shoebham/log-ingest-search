@@ -272,7 +272,7 @@ updateTimeRange();
 handleCustomTimeSelection();
 
 const searchLogsRealtime = async () => {
-  const query = searchInput.value.trim(); // Get search query from input field
+  const query = sanitizeInput(searchInput.value.trim()); // Get search query from input field
 
   try {
     const response = await axios.get(
@@ -299,3 +299,7 @@ const debounceSearch = () => {
 
 const searchInput = document.getElementById("searchInput");
 searchInput.addEventListener("input", debounceSearch);
+function sanitizeInput(input) {
+  // Replace dashes with an empty string
+  return input.replace(/-/g, " ");
+}

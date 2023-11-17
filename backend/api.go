@@ -86,7 +86,6 @@ func debounceAPIRequest(next http.HandlerFunc) http.HandlerFunc {
 }
 func realTimeSearch(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-
 	if query == "" {
 		http.Error(w, "Empty query", http.StatusBadRequest)
 		return
@@ -95,7 +94,7 @@ func realTimeSearch(w http.ResponseWriter, r *http.Request) {
 	// Perform real-time search logic using the 'query'...
 	
 	// Execute the search query
-	rows, err := sqliteDB.Query("SELECT * FROM logs_fts WHERE logs_fts MATCH ?", query)
+	rows, err := sqliteDB.Query("SELECT * FROM logs_fts WHERE logs_fts MATCH ?", query+"*")
 	if err != nil {
 		log.Fatal(err)
 	}
