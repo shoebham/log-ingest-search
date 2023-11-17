@@ -326,14 +326,25 @@ document.addEventListener("click", function (event) {
 function displaySelectedTime() {
   const timeRange = document.getElementById("timeRange");
   const selectedRangeText = document.getElementById("selectedRangeText");
+  const startTime = document.getElementById("startTime").value;
+  const endTime = document.getElementById("endTime").value;
 
-  const selectedRange = timeRange.options[timeRange.selectedIndex].text;
+  let selectedRange = timeRange.options[timeRange.selectedIndex].text;
+  if (selectedRange === "Custom") {
+    selectedRange = `${startTime} - ${endTime}`;
+  }
   selectedRangeText.textContent = selectedRange;
 
   toggleTimePicker(); // Hide the options after selection
 }
+
 const timePickerContent = document.getElementById("timePickerContent");
 
 timePickerContent.addEventListener("click", function (event) {
   event.stopPropagation(); // Stop the click event from propagating
 });
+const startTimeInput = document.getElementById("startTime");
+const endTimeInput = document.getElementById("endTime");
+
+startTimeInput.addEventListener("input", displaySelectedTime);
+endTimeInput.addEventListener("input", displaySelectedTime);
