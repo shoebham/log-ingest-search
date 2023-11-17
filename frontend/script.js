@@ -92,21 +92,44 @@ function removeParam(button) {
   searchParam.remove();
 }
 
+function constructSearchParamForTime() {
+  const startTime = document.getElementById("startTime").value;
+  const endTime = document.getElementById("endTime").value;
+
+  const timeParam = {
+    column: "timestamp", // Assuming "timestamp" as the column for time
+    operand: ">=", // Modify as needed for start and end time comparison
+    value: startTime,
+  };
+
+  const endTimeParam = {
+    column: "timestamp", // Assuming "timestamp" as the column for time
+    operand: "<=", // Modify as needed for start and end time comparison
+    value: endTime,
+  };
+
+  return [timeParam, "AND", endTimeParam];
+}
+
 // Function to handle the search
 function searchLogs() {
   var searchParams = {};
   const criteria = [];
+  const timeCriteria = constructSearchParamForTime();
+  criteria.push(...timeCriteria);
+
   const searchParamDivs = document.querySelectorAll(".searchParam");
   searchParamDivs.forEach((paramDiv) => {
     const column = paramDiv.querySelector(".column").value;
     const operand = paramDiv.querySelector(".operand").value; // Add operand selection
     const value = paramDiv.querySelector(".value").value;
-    const logical = paramDiv.querySelector(".logical");
-    if (logical) {
-      const logicalValue = logical.value;
-      criteria.push(logicalValue);
-    }
+    const logical = paramDiv.querySelector(".logical") || "AND";
+
     if (column && operand && value) {
+      if (logical) {
+        const logicalValue = logical.value || "AND";
+        criteria.push(logicalValue);
+      }
       criteria.push({ column, operand, value }); // Include operand in the search parameters
     }
   });
@@ -133,7 +156,7 @@ function displayLogs(logs) {
   console.log("logs", logs);
   const logsDiv = document.getElementById("logs");
   logsDiv.innerHTML = "";
-
+  logsDiv.innerText = count + " Rows returned";
   if (logs.length === 0) {
     logsDiv.innerHTML = "No logs found.";
     return;
