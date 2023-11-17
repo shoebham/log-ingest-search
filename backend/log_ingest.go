@@ -133,41 +133,6 @@ type Columns struct {
 	Columns []string `json:"columns"`
 }
 
-func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
-	
-	// Query to fetch column names from a specific table
-	rows, err := db.Query("SELECT column_name FROM information_schema.columns WHERE table_name = 'logs'")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	var columns []string
-
-	// Iterate through rows and collect column names
-	for rows.Next() {
-		var columnName string
-		if err := rows.Scan(&columnName); err != nil {
-			log.Fatal(err)
-		}
-		columns = append(columns, columnName)
-	}
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	columnData := Columns{Columns: columns}
-
-	// Convert columns to JSON
-	columnsJSON, err := json.Marshal(columnData)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Set response headers and write JSON response
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(columnsJSON)
-}
 // corsMiddleware is a middleware function to handle CORS headers
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +159,7 @@ func main(){
 	http.HandleFunc("/",greet)
 	http.HandleFunc("/logs",handleLogs)
 	http.HandleFunc("/columns",fetchColumnsHandler)
-
+	http.HandleFunc("/search",search)
 	fmt.Print("Listenting on port 3000")
 	handler := corsMiddleware(http.DefaultServeMux)
 

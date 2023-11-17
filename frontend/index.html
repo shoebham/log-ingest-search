@@ -3,37 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Log Search</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
-    <div id="columnBox">
-        <label for="columns">Metric:</label>
-        <select id="columns">
-            <option disabled selected value="Loading...">Loading...</option>
-        </select>
+    <h1>Log Search</h1>
+    <div id="searchBox">
+        <div id="searchParameters"></div>
+        <button onclick="addParam()">Add</button>
+        <button onclick="searchLogs()">Search</button>
     </div>
+    <div id="logs"></div>
+
 </body>
-
-<script>
-    var columnsjson
-    window.onload = (async () => {
-        const res = await fetch("http://localhost:3000/columns");
-        columnsjson = await res.json();
-        console.log(columnsjson);
-        populateDropdown();
-
-    })
-
-    function populateDropdown() {
-        const columnSelect = document.getElementById("columns");
-        columnSelect.innerHTML = "";
-        columnsjson.columns.forEach(element => {
-            const columnOption = `<option value=${element}> ${element}</option>`;
-            columnSelect.innerHTML += columnOption;
-        });
-    }
-</script>
+<script src="script.js"></script>
 
 </html>
