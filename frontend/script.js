@@ -303,3 +303,37 @@ function sanitizeInput(input) {
   // Replace dashes with an empty string
   return input.replace(/-/g, " ");
 }
+function toggleTimePicker() {
+  const timePickerContent = document.getElementById("timePickerContent");
+  if (timePickerContent.style.display === "block") {
+    timePickerContent.style.display = "none";
+  } else {
+    timePickerContent.style.display = "block";
+  }
+}
+
+document.addEventListener("click", function (event) {
+  const timePickerContent = document.getElementById("timePickerContent");
+  const selectedTime = document.getElementById("selectedTime");
+
+  if (
+    !selectedTime.contains(event.target) &&
+    timePickerContent.style.display === "block"
+  ) {
+    timePickerContent.style.display = "none";
+  }
+});
+function displaySelectedTime() {
+  const timeRange = document.getElementById("timeRange");
+  const selectedRangeText = document.getElementById("selectedRangeText");
+
+  const selectedRange = timeRange.options[timeRange.selectedIndex].text;
+  selectedRangeText.textContent = selectedRange;
+
+  toggleTimePicker(); // Hide the options after selection
+}
+const timePickerContent = document.getElementById("timePickerContent");
+
+timePickerContent.addEventListener("click", function (event) {
+  event.stopPropagation(); // Stop the click event from propagating
+});
