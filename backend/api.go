@@ -99,6 +99,10 @@ func search(w http.ResponseWriter, r *http.Request){
 
 func constructQuery(searchCriteria SearchCriteria) string {
 	query := "SELECT * FROM logs WHERE "
+	// fmt.Printf("%+v",searchCriteria)
+	if len(searchCriteria.Criteria)==0{
+		query+="true";
+	}
 	for i, criteria := range searchCriteria.Criteria {
 		if i > 0 {
 			// Check if the criteria is a logical operator (AND/OR)
@@ -117,8 +121,13 @@ func constructQuery(searchCriteria SearchCriteria) string {
 		column, _ := param["column"].(string)
 		operand, _ := param["operand"].(string)
 		value, _ := param["value"].(string)
-
-		query += fmt.Sprintf("%s %s '%s'", column, operand, value)
+		// Check for regex operand
+		if operand == "=~" {
+			query += fmt.Sprintf("%s ~ '%s'", column, value)
+		} else {
+			query += fmt.Sprintf("%s %s '%s'", column, operand, value)
+		}
+		// query += fmt.Sprintf("%s %s '%s'", column, operand, value)
 	}
 	return query
 }

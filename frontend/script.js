@@ -45,7 +45,7 @@ function addParam() {
 
   const operand = document.createElement("select");
   operand.classList.add("operand");
-  ["=", "!=", ">", "<"].forEach((e) => {
+  ["=", "!=", ">", "<", "=~"].forEach((e) => {
     const option = document.createElement("option");
     option.value = e;
     option.text = e;
@@ -91,31 +91,51 @@ function removeParam(button) {
   const searchParam = button.parentElement;
   searchParam.remove();
 }
+function constructSearchParamForTime(startTime, endTime) {
+  const timeCriteria = [];
 
-function constructSearchParamForTime() {
-  const startTime = document.getElementById("startTime").value;
-  const endTime = document.getElementById("endTime").value;
+  if (startTime && endTime) {
+    const startParam = {
+      column: "timestamp",
+      operand: ">=",
+      value: startTime,
+    };
+    const endParam = {
+      column: "timestamp",
+      operand: "<=",
+      value: endTime,
+    };
+    timeCriteria.push(startParam, "AND", endParam);
+  } else if (startTime) {
+    const startParam = {
+      column: "timestamp",
+      operand: ">=",
+      value: startTime,
+    };
+    timeCriteria.push(startParam);
+  } else if (endTime) {
+    const endParam = {
+      column: "timestamp",
+      operand: "<=",
+      value: endTime,
+    };
+    timeCriteria.push(endParam);
+  }
 
-  const timeParam = {
-    column: "timestamp", // Assuming "timestamp" as the column for time
-    operand: ">=", // Modify as needed for start and end time comparison
-    value: startTime,
-  };
-
-  const endTimeParam = {
-    column: "timestamp", // Assuming "timestamp" as the column for time
-    operand: "<=", // Modify as needed for start and end time comparison
-    value: endTime,
-  };
-
-  return [timeParam, "AND", endTimeParam];
+  return timeCriteria;
 }
 
 // Function to handle the search
 function searchLogs() {
   var searchParams = {};
   const criteria = [];
-  const timeCriteria = constructSearchParamForTime();
+  const startTime = document.getElementById("startTime").value;
+  const endTime = document.getElementById("endTime").value;
+  const timeCriteria = constructSearchParamForTime(
+    startTime || null,
+    endTime || null
+  );
+
   criteria.push(...timeCriteria);
 
   const searchParamDivs = document.querySelectorAll(".searchParam");
@@ -156,8 +176,8 @@ function displayLogs(logs) {
   console.log("logs", logs);
   const logsDiv = document.getElementById("logs");
   logsDiv.innerHTML = "";
-  logsDiv.innerText = count + " Rows returned";
-  if (logs.length === 0) {
+  logsDiv.innerText = count + " Logs found";
+  if (count == 0) {
     logsDiv.innerHTML = "No logs found.";
     return;
   }
@@ -220,6 +240,9 @@ function updateTimeRange() {
           .toISOString()
           .slice(0, 16); // 5 hours ago
         break;
+      case "Forever":
+        endTime.value = "";
+        startTime.value = "";
       // Add cases for other predefined ranges
       default:
         break;
