@@ -4,7 +4,7 @@
 SERVER_URL="http://localhost:3000/logs"
 
 # Number of logs to generate
-NUM_LOGS=10
+NUM_LOGS=12  # 12 logs for 2 minutes (10 seconds per log)
 
 for ((i = 0; i < $NUM_LOGS; i++)); do
     # Generate random values for different fields
@@ -27,6 +27,12 @@ for ((i = 0; i < $NUM_LOGS; i++)); do
 
     # Construct JSON log entry
     RANDOM_LOG="{ \"level\": \"$RANDOM_LEVEL\", \"message\": \"$MESSAGE\", \"resourceId\": \"$RESOURCE_ID\", \"timestamp\": \"$TIMESTAMP\", \"traceId\": \"$TRACE_ID\", \"spanId\": \"$SPAN_ID\", \"commit\": \"$COMMIT\", \"metadata\": { \"parentResourceId\": \"$PARENT_RESOURCE_ID\" } }"
+
+    # Print countdown timer
+    for ((remaining = 10; remaining >= 0; remaining--)); do
+        echo -ne "Sending next log in $remaining seconds...\033[0K\r"
+        sleep 1
+    done
 
     # Send the log entry as a POST request using curl
     curl -X POST -H "Content-Type: application/json" -d "$RANDOM_LOG" "$SERVER_URL"

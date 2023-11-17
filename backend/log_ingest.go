@@ -92,10 +92,9 @@ func handleLogs(w http.ResponseWriter, r *http.Request){
 	fmt.Printf("Received log entry: %+v\n", logEntry)
 
 	insertLog(logEntry)
-	// writeLogsToFile(logEntry)
-	// Respond with success message
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Log received and written to file successfully"))
+	w.Write([]byte("Log received \n"))
 }
 
 func writeLogsToFile(logEntry LogEntry){
@@ -165,6 +164,16 @@ func insertLog(logEntry LogEntry){
 	if err!=nil{
 		log.Fatal(err)
 	}
+	fmt.Println("Inserted to postgresql")
+	_,err=sqliteDB.Exec(`INSERT INTO logs_fts (level,message,resourceId,timestamp,traceId,spanId,"commit",metadata_parentResourceID)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
+	logEntry.Level,logEntry.Message,logEntry.ResourceID,logEntry.Timestamp,logEntry.TraceID,logEntry.SpanID,logEntry.Commit,logEntry.Metadata.ParentResourceID)
+	if err!=nil{
+		log.Fatal(err)
+	}
+	fmt.Println("Inserted to sqlite")
+
+	
 }
 
 type Columns struct {

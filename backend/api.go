@@ -94,38 +94,15 @@ func realTimeSearch(w http.ResponseWriter, r *http.Request) {
 	// Perform real-time search logic using the 'query'...
 	
 	// Execute the search query
-	rows, err := sqliteDB.Query("SELECT * FROM logs_fts WHERE logs_fts MATCH ?", query+"*")
+	rows, err := sqliteDB.Query("SELECT rowid,* FROM logs_fts WHERE logs_fts MATCH ?", query+"*")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
 
 	// Process query results
-	var results []map[string]interface{}
-
-	columns, _ := rows.Columns()
-	count := len(columns)
-	values := make([]interface{}, count)
-	valuePointers := make([]interface{}, count)
-	for i := range columns {
-		valuePointers[i] = &values[i]
-	}
-
-	for rows.Next() {
-		rows.Scan(valuePointers...)
-		entry := make(map[string]interface{})
-		for i, col := range columns {
-			val := values[i]
-			b, ok := val.([]byte)
-			if ok {
-				entry[col] = string(b)
-			} else {
-				entry[col] = val
-			}
-		}
-		results = append(results, entry)
-	}
-
+	results := processQueryResults(rows)
+	
 	// Respond with the search results
 	responseData := map[string]interface{}{
 		"count":  len(results),
