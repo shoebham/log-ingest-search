@@ -27,6 +27,17 @@ function addParam() {
   columnSelect.onchange = () => fetchColumns(columnSelect);
   newSearchParam.appendChild(columnSelect);
 
+  const operand = document.createElement("select");
+  operand.classList.add("operand");
+  ["=", "!=", ">", "<"].forEach((e) => {
+    const option = document.createElement("option");
+    option.value = e;
+    option.text = e;
+    operand.appendChild(option);
+  });
+
+  newSearchParam.appendChild(operand);
+
   const valueInput = document.createElement("input");
   valueInput.classList.add("value");
   valueInput.setAttribute("type", "text");
@@ -53,24 +64,27 @@ function removeParam(button) {
 
 // Function to handle the search
 function searchLogs() {
-  const searchParams = [];
+  var searchParams = {};
+  const criteria = [];
   const searchParamDivs = document.querySelectorAll(".searchParam");
   searchParamDivs.forEach((paramDiv) => {
     const column = paramDiv.querySelector(".column").value;
+    const operand = paramDiv.querySelector(".operand").value; // Add operand selection
     const value = paramDiv.querySelector(".value").value;
-    if (column && value) {
-      searchParams.push({ column, value });
+    const logical = "AND";
+    if (column && operand && value) {
+      criteria.push({ column, operand, value, logical }); // Include operand in the search parameters
     }
   });
 
-  const url = `http://localhost:3000/search?${searchParams
-    .map((param) => `${param.column}=${param.value}`)
-    .join("&")}`;
+  searchParams = { criteria };
+  console.log(searchParams);
+  const url = `http://localhost:3000/search`; // Update the search endpoint
+
   axios
-    .get(url)
+    .post(url, searchParams) // Send a POST request with the searchParams
     .then((response) => {
       // Process and display the search results
-
       console.log(response.data);
       displayLogs(response.data);
     })

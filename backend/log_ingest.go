@@ -160,7 +160,7 @@ func main(){
 	http.HandleFunc("/logs",handleLogs)
 	http.HandleFunc("/columns",fetchColumnsHandler)
 	http.HandleFunc("/search",search)
-	fmt.Print("Listenting on port 3000")
+	fmt.Println("Listenting on port 3000")
 	handler := corsMiddleware(http.DefaultServeMux)
 
 	// Start server with the CORS-wrapped handler

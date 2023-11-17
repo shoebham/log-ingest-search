@@ -1,11 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,71 +44,87 @@ func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(columnsJSON)
 }
 
+type SearchCriteria struct {
+	Criteria []SearchParam `json:"criteria"`
+}
+
+type SearchParam struct {
+	Column  string `json:"column"`
+	Operand string `json:"operand"`
+	Value   string `json:"value"`
+	Logical string `json:"logical"` // AND/OR
+}
 
 func search(w http.ResponseWriter, r *http.Request){
-	query := r.URL.Query()
-	var queryParams []string
-	var args []interface{}
-
-	for key, values := range query {
-		if key != "" && len(values) > 0 {
-			for _, value := range values {
-				queryParams = append(queryParams, fmt.Sprintf("%s=$%d", key, len(args)+1))
-				args = append(args, value)
-			}
-		}
+	var searchCriteria SearchCriteria
+	
+	err := json.NewDecoder(r.Body).Decode(&searchCriteria)
+	if err != nil {
+		http.Error(w, "Error parsing search criteria", http.StatusBadRequest)
+		return
 	}
 
-	whereClause := strings.Join(queryParams, " OR ")
-	sqlQuery := fmt.Sprintf("SELECT * FROM logs WHERE %s;", whereClause)
-
-	rows, err := db.Query(sqlQuery, args...)
+	query := constructQuery(searchCriteria)
+	rows, err := db.Query(query)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error executing query", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	columns, err := rows.Columns()
+	results := processQueryResults(rows)
+
+	// Respond with the search results
+	jsonResponse, err := json.Marshal(results)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var results []map[string]interface{}
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
-		for i := range columns {
-			valuePtrs[i] = &values[i]
-		}
-
-		if err := rows.Scan(valuePtrs...); err != nil {
-			log.Println(err)
-			continue
-		}
-
-		rowMap := make(map[string]interface{})
-		for i, col := range columns {
-			val := values[i]
-			if b, ok := val.([]byte); ok {
-				rowMap[col] = string(b)
-			} else {
-				rowMap[col] = val
-			}
-		}
-		results = append(results, rowMap)
-	}
-
-	// Convert results to JSON
-	responseJSON, err := json.Marshal(results)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(responseJSON)
+	w.Write(jsonResponse)
 }
 
+
+func constructQuery(searchCriteria SearchCriteria) string {
+	query := "SELECT * FROM logs WHERE "
+	for i, param := range searchCriteria.Criteria {
+		if i > 0 {
+			query += fmt.Sprintf(" %s ", param.Logical)
+		}
+		query += fmt.Sprintf("%s %s '%s'", param.Column, param.Operand, param.Value)
+		if i+1 < len(searchCriteria.Criteria) {
+			query += " AND "
+		}
+	}
+	return query
+}
+
+func processQueryResults(rows *sql.Rows) []map[string]interface{} {
+	var results []map[string]interface{}
+
+	columns, _ := rows.Columns()
+	count := len(columns)
+	values := make([]interface{}, count)
+	valuePointers := make([]interface{}, count)
+	for i := range columns {
+		valuePointers[i] = &values[i]
+	}
+
+	for rows.Next() {
+		rows.Scan(valuePointers...)
+		entry := make(map[string]interface{})
+		for i, col := range columns {
+			val := values[i]
+			b, ok := val.([]byte)
+			if ok {
+				entry[col] = string(b)
+			} else {
+				entry[col] = val
+			}
+		}
+		results = append(results, entry)
+	}
+	return results
+}
