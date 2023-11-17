@@ -18,7 +18,6 @@ var isFirst = true;
 // Function to add new search parameters
 function addParam() {
   const searchParameters = document.getElementById("searchParameters");
-
   const newSearchParam = document.createElement("div");
   newSearchParam.classList.add("searchParam");
   if (!isFirst) {
@@ -36,7 +35,12 @@ function addParam() {
   }
   const columnSelect = document.createElement("select");
   columnSelect.classList.add("column");
-  columnSelect.onchange = () => fetchColumns(columnSelect);
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "Select an option";
+  defaultOption.selected = true;
+  defaultOption.disabled = true;
+  defaultOption.text = defaultOption.value;
+  columnSelect.appendChild(defaultOption);
   newSearchParam.appendChild(columnSelect);
 
   const operand = document.createElement("select");
@@ -65,8 +69,20 @@ function addParam() {
 
   isFirst = false;
   searchParameters.appendChild(newSearchParam);
-
   fetchColumns(columnSelect);
+
+  columnSelect.onchange = () => {
+    if (columnSelect.value == "Select an option") {
+      operand.disabled = true;
+      valueInput.disabled = true;
+      document.getElementById("addSearchBtn").disabled = true;
+    } else {
+      valueInput.disabled = false;
+      operand.disabled = false;
+      document.getElementById("addSearchBtn").disabled = false;
+    }
+  };
+  columnSelect.dispatchEvent(new Event("change"));
 }
 
 // Function to remove a search parameter
@@ -153,5 +169,58 @@ function displayLogs(logs) {
   logsDiv.appendChild(table);
 }
 
+function updateTimeRange() {
+  const timeRange = document.getElementById("timeRange");
+  const startTime = document.getElementById("startTime");
+  const endTime = document.getElementById("endTime");
+
+  timeRange.addEventListener("change", function () {
+    const selectedValue = this.value;
+    const now = new Date().toISOString().slice(0, 16); // Current date and time in YYYY-MM-DDTHH:mm format
+
+    switch (selectedValue) {
+      case ".08":
+        endTime.value = now;
+        startTime.value = new Date(Date.now() - 0.08 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 16);
+        break;
+      case "1":
+        endTime.value = now;
+        startTime.value = new Date(Date.now() - 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 16); // 1 hour ago
+        break;
+      case "5":
+        endTime.value = now;
+        startTime.value = new Date(Date.now() - 5 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 16); // 5 hours ago
+        break;
+      // Add cases for other predefined ranges
+      default:
+        break;
+    }
+  });
+  timeRange.dispatchEvent(new Event("change"));
+}
+
+function handleCustomTimeSelection() {
+  const startTime = document.getElementById("startTime");
+  const endTime = document.getElementById("endTime");
+  const timeRange = document.getElementById("timeRange");
+
+  startTime.addEventListener("input", function () {
+    timeRange.value = "custom";
+  });
+
+  endTime.addEventListener("input", function () {
+    timeRange.value = "custom";
+  });
+}
+
 // Add initial search parameter on page load
 addParam();
+// Initialize the functions
+updateTimeRange();
+handleCustomTimeSelection();
