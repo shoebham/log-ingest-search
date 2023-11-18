@@ -9,7 +9,19 @@ import (
 	"sync"
 	"time"
 )
+type SearchCriteria struct {
+	Criteria []interface{} `json:"criteria"`
+}
 
+
+type SearchParam struct {
+
+	Column  string `json:"column"`
+	Operand string `json:"operand"`
+	Value   string `json:"value"`
+}
+
+// comes from /columns endpoint
 func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
 	
 	// Query to fetch column names from a specific table
@@ -46,17 +58,24 @@ func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(columnsJSON)
 }
 
-type SearchCriteria struct {
-	Criteria []interface{} `json:"criteria"`
+// comes from /logs endpoint
+func handleLogs(w http.ResponseWriter, r *http.Request){
+	fmt.Print("inside handle logs\n")
+	var logEntry LogEntry
+	err := json.NewDecoder(r.Body).Decode(&logEntry)
+	if err!=nil{
+		http.Error(w,"Error parsing log entry",http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("Received log entry: %+v\n", logEntry)
+	insertLog(logEntry)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Log received \n"))
 }
 
 
-type SearchParam struct {
 
-	Column  string `json:"column"`
-	Operand string `json:"operand"`
-	Value   string `json:"value"`
-}
 var (
 	lastRequest   time.Time
 	lastRequestMu sync.Mutex
@@ -119,12 +138,6 @@ func realTimeSearch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 
-
-	// // Example: Respond with the search query result (replace this with your logic)
-	// response := fmt.Sprintf("Real-time search query: %s", query)
-	// w.Header().Set("Content-Type", "text/plain")
-	// w.WriteHeader(http.StatusOK)
-	// w.Write([]byte(response))
 }
 func search(w http.ResponseWriter, r *http.Request){
 	var searchCriteria SearchCriteria
