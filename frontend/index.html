@@ -11,41 +11,43 @@
 
 <body>
     <h1>Log Search</h1>
+
+
     <div id="searchBox">
+        <div class="time-picker-container">
+            <div class="selected-time" id="selectedTime" onclick="toggleTimePicker()">
+                Selected Time: <span id="selectedRangeText">Last 5 minutes</span>
+            </div>
+            <div class="time-picker-content" id="timePickerContent">
+                <div class="time-section">
+                    <label>Select Time Range:</label>
+                    <select id="timeRange" onchange="displaySelectedTime()">
+                        <option value=".08">Last 5 minutes</option>
+                        <option value="1">Last 1 Hour</option>
+                        <option value="5">Last 5 Hours</option>
+                        <option value="Forever">Forever</option>
+                        <option disabled value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="time-section">
+                    <div class="horizontal-time">
+                        <label>Start Time:</label>
+                        <input type="datetime-local" id="startTime">
+                    </div>
+                    <div class="horizontal-time">
+                        <label>End Time:</label>
+                        <input type="datetime-local" id="endTime">
+                    </div>
+                </div>
+                <div class="vertical-line"></div> <!-- Vertical line -->
+            </div>
+        </div>
         <div id="searchParameters"></div>
         <button id="addSearchBtn" onclick="addParam()">Add</button>
         <button id="searchBtn" onclick="searchLogs()">Search</button>
     </div>
     <!-- ... (existing HTML content) ... -->
 
-    <div class="time-picker-container">
-        <div class="selected-time" id="selectedTime" onclick="toggleTimePicker()">
-            Selected Time: <span id="selectedRangeText">Last 5 minutes</span>
-        </div>
-        <div class="time-picker-content" id="timePickerContent">
-            <div class="time-section">
-                <label>Select Time Range:</label>
-                <select id="timeRange" onchange="displaySelectedTime()">
-                    <option value=".08">Last 5 minutes</option>
-                    <option value="1">Last 1 Hour</option>
-                    <option value="5">Last 5 Hours</option>
-                    <option value="Forever">Forever</option>
-                    <option disabled value="custom">Custom</option>
-                </select>
-            </div>
-            <div class="time-section">
-                <div class="horizontal-time">
-                    <label>Start Time:</label>
-                    <input type="datetime-local" id="startTime">
-                </div>
-                <div class="horizontal-time">
-                    <label>End Time:</label>
-                    <input type="datetime-local" id="endTime">
-                </div>
-            </div>
-            <div class="vertical-line"></div> <!-- Vertical line -->
-        </div>
-    </div>
 
     <!-- ... (remaining HTML content) ... -->
 

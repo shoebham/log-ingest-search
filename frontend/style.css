@@ -47,34 +47,15 @@ h1 {
 
 /* Time picker styles */
 .time-picker-container {
-    position: relative;
-    display: inline-block;
-    float: right; /* Positioned to the right */
-    margin-right: 20px; /* Adjust margin as needed */
+
 }
 
 .selected-time {
-    background-color: #fff;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    position: absolute;
-    top: 0;
-    right: 0; /* Positioned to the right */
+
 }
 
 .time-picker-content {
-    display: none;
-    position: absolute;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 20px;
-    z-index: 1;
-    top: 40px; /* Adjust the top position as needed */
-    right: 0; /* Positioned to the right */
-    max-width: 300px; /* Set a max-width if needed */
+
 }
 
 /* Input Styles */
@@ -113,18 +94,20 @@ th {
 }
 
 .selected-time {
-    background-color: #fff;
+        background-color: #020202;
+    color: white;
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     position: relative;
+    border-radius: 4px;
+    box-shadow: -1px 9px 10px #999;
 }
 
 .time-picker-content {
     display: none;
     position: absolute;
-    top: calc(100% + 10px);
     right: 0;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -152,22 +135,7 @@ input, select {
   box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
-.selected-time {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #fff;
-    padding: 8px 16px;
-    border-radius: 4px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-.time-picker-content {
-    /* ... (existing styles) ... */
-    top: auto; /* Remove the top positioning */
-    bottom: 32px; /* Adjust this value to position it precisely above the selected-time div */
-    right: 20px; /* Positioned to the right */
-    left: auto; /* Remove the left positioning */
-}
+
 #addSearchBtn:disabled {
     /* Define the styles for the disabled button */
     background-color: #ccc; /* Change the background color */
@@ -175,3 +143,13 @@ input, select {
     /* Add any other styles to visually indicate it's disabled */
 }
 
+.column,.operand,.value{
+    text-align: center;
+}
+/* Add a class to the search box to gray it out */
+.grayed-out {
+  filter: grayscale(100%);
+}
+
+/* Rest of your existing CSS styles */
+/* ... */

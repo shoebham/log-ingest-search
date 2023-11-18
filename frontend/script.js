@@ -14,6 +14,8 @@ async function fetchColumns(select) {
     console.error("Error:", error);
   }
 }
+const searchInput = document.getElementById("searchInput");
+
 var isFirst = true;
 // Function to add new search parameters
 function addParam() {
@@ -127,6 +129,8 @@ function constructSearchParamForTime(startTime, endTime) {
 
 // Function to handle the search
 function searchLogs() {
+  searchInput.value = "";
+
   var searchParams = {};
   const criteria = [];
   const startTime = document.getElementById("startTime").value;
@@ -273,7 +277,10 @@ handleCustomTimeSelection();
 
 const searchLogsRealtime = async () => {
   const query = sanitizeInput(searchInput.value.trim()); // Get search query from input field
-
+  if (query == "") {
+    displayLogs({ count: 0, result: null });
+    return;
+  }
   try {
     const response = await axios.get(
       `http://localhost:3000/searchRealTime?query=${query}`
@@ -297,7 +304,6 @@ const debounceSearch = () => {
   }, 500); // Adjust debounce delay as needed (e.g., 500ms)
 };
 
-const searchInput = document.getElementById("searchInput");
 searchInput.addEventListener("input", debounceSearch);
 function sanitizeInput(input) {
   // Replace dashes with an empty string
@@ -335,7 +341,7 @@ function displaySelectedTime() {
   }
   selectedRangeText.textContent = selectedRange;
 
-  toggleTimePicker(); // Hide the options after selection
+  // toggleTimePicker(); // Hide the options after selection
 }
 
 const timePickerContent = document.getElementById("timePickerContent");
@@ -348,3 +354,16 @@ const endTimeInput = document.getElementById("endTime");
 
 startTimeInput.addEventListener("input", displaySelectedTime);
 endTimeInput.addEventListener("input", displaySelectedTime);
+// Add event listeners to focus and blur events on the search input
+
+const searchBox = document.getElementById("searchBox");
+
+searchInput.addEventListener("focus", function () {
+  searchBox.classList.add("grayed-out"); // Add the class when the search input is focused
+});
+
+searchInput.addEventListener("blur", function () {
+  searchBox.classList.remove("grayed-out"); // Remove the class when the search input loses focus
+});
+
+const searchBtn = document.getElementById("searchBtn");
