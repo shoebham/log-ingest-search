@@ -157,12 +157,18 @@ function searchLogs() {
   criteria.push(...timeCriteria);
 
   const searchParamDivs = document.querySelectorAll(".searchParam");
-  searchParamDivs.forEach((paramDiv) => {
+  searchParamDivs.forEach((paramDiv, i) => {
     const column = paramDiv.querySelector(".column").value;
     const operand = paramDiv.querySelector(".operand").value; // Add operand selection
     const value = paramDiv.querySelector(".value").value;
-    const logical = paramDiv.querySelector(".logical") || "AND";
+    var logical = paramDiv.querySelector(".logical") || "AND";
 
+    if (timeCriteria.length == 0 && i == 0) {
+      logical = null;
+    }
+    console.log("timecriteria", timeCriteria);
+    console.log("logical", logical);
+    console.log("i", i);
     if (column && operand && value) {
       if (logical) {
         const logicalValue = logical.value || "AND";

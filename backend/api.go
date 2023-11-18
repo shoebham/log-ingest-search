@@ -197,7 +197,7 @@ func constructQuery(searchCriteria SearchCriteria) string {
 
 		param, ok := criteria.(map[string]interface{})
 		if !ok {
-			log.Println("Invalid search parameter format")
+			log.Printf("Invalid search parameter format %+v | %+v",criteria,ok)
 			continue
 		}
 
