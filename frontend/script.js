@@ -1,4 +1,17 @@
 // Function to fetch column names and populate dropdown options
+const searchInput = document.getElementById("searchInput");
+const addSearchBtn = document.getElementById("addSearchBtn");
+
+const startTimeInput = document.getElementById("startTime");
+const endTimeInput = document.getElementById("endTime");
+const timeRange = document.getElementById("timeRange");
+
+const timePickerContent = document.getElementById("timePickerContent");
+const searchBox = document.getElementById("searchBox");
+
+const searchBtn = document.getElementById("searchBtn");
+
+// fetches column from db to populate the select option
 async function fetchColumns(select) {
   try {
     const response = await axios.get("http://localhost:3000/columns");
@@ -14,10 +27,10 @@ async function fetchColumns(select) {
     console.error("Error:", error);
   }
 }
-const searchInput = document.getElementById("searchInput");
 
 var isFirst = true;
-// Function to add new search parameters
+
+// Adds the column dropdown along with value and operand
 function addParam() {
   const searchParameters = document.getElementById("searchParameters");
   const newSearchParam = document.createElement("div");
@@ -72,16 +85,15 @@ function addParam() {
   isFirst = false;
   searchParameters.appendChild(newSearchParam);
   fetchColumns(columnSelect);
-
   columnSelect.onchange = () => {
     if (columnSelect.value == "Select an option") {
       operand.disabled = true;
       valueInput.disabled = true;
-      document.getElementById("addSearchBtn").disabled = true;
+      addSearchBtn.disabled = true;
     } else {
       valueInput.disabled = false;
       operand.disabled = false;
-      document.getElementById("addSearchBtn").disabled = false;
+      addSearchBtn.disabled = false;
     }
   };
   columnSelect.dispatchEvent(new Event("change"));
@@ -93,6 +105,8 @@ function removeParam(button) {
   const searchParam = button.parentElement;
   searchParam.remove();
 }
+
+//validates timestamps from datepicker, checks if one of them is empty or not
 function constructSearchParamForTime(startTime, endTime) {
   const timeCriteria = [];
 
@@ -127,14 +141,14 @@ function constructSearchParamForTime(startTime, endTime) {
   return timeCriteria;
 }
 
-// Function to handle the search
+// sends a request to server
 function searchLogs() {
   searchInput.value = "";
 
   var searchParams = {};
   const criteria = [];
-  const startTime = document.getElementById("startTime").value;
-  const endTime = document.getElementById("endTime").value;
+  const startTime = startTimeInput.value;
+  const endTime = endTimeInput.value;
   const timeCriteria = constructSearchParamForTime(
     startTime || null,
     endTime || null
@@ -173,7 +187,7 @@ function searchLogs() {
       console.error("Error:", error);
     });
 }
-
+// displays logs in tabular format
 function displayLogs(logs) {
   var count = logs.count;
   logs = logs.result;
@@ -216,37 +230,34 @@ function displayLogs(logs) {
   logsDiv.appendChild(table);
 }
 
+// updates time range when time range  ( Last x minutes/Hours) is changed
 function updateTimeRange() {
-  const timeRange = document.getElementById("timeRange");
-  const startTime = document.getElementById("startTime");
-  const endTime = document.getElementById("endTime");
-
   timeRange.addEventListener("change", function () {
     const selectedValue = this.value;
     const now = new Date().toISOString().slice(0, 16); // Current date and time in YYYY-MM-DDTHH:mm format
 
     switch (selectedValue) {
       case ".08":
-        endTime.value = now;
-        startTime.value = new Date(Date.now() - 0.08 * 60 * 60 * 1000)
+        endTimeInput.value = now;
+        startTimeInput.value = new Date(Date.now() - 0.08 * 60 * 60 * 1000)
           .toISOString()
           .slice(0, 16);
         break;
       case "1":
-        endTime.value = now;
-        startTime.value = new Date(Date.now() - 60 * 60 * 1000)
+        endTimeInput.value = now;
+        startTimeInput.value = new Date(Date.now() - 60 * 60 * 1000)
           .toISOString()
           .slice(0, 16); // 1 hour ago
         break;
       case "5":
-        endTime.value = now;
-        startTime.value = new Date(Date.now() - 5 * 60 * 60 * 1000)
+        endTimeInput.value = now;
+        startTimeInput.value = new Date(Date.now() - 5 * 60 * 60 * 1000)
           .toISOString()
           .slice(0, 16); // 5 hours ago
         break;
       case "Forever":
-        endTime.value = "";
-        startTime.value = "";
+        endTimeInput.value = "";
+        startTimeInput.value = "";
       // Add cases for other predefined ranges
       default:
         break;
@@ -256,25 +267,21 @@ function updateTimeRange() {
 }
 
 function handleCustomTimeSelection() {
-  const startTime = document.getElementById("startTime");
-  const endTime = document.getElementById("endTime");
-  const timeRange = document.getElementById("timeRange");
-
-  startTime.addEventListener("input", function () {
+  startTimeInput.addEventListener("input", function () {
     timeRange.value = "custom";
   });
 
-  endTime.addEventListener("input", function () {
+  endTimeInput.addEventListener("input", function () {
     timeRange.value = "custom";
   });
 }
 
 // Add initial search parameter on page load
 addParam();
-// Initialize the functions
 updateTimeRange();
 handleCustomTimeSelection();
 
+// sends request to server for realtime search (both realtime and filter uses different endpoints)
 const searchLogsRealtime = async () => {
   const query = sanitizeInput(searchInput.value.trim()); // Get search query from input field
   if (query == "") {
@@ -293,6 +300,7 @@ const searchLogsRealtime = async () => {
     console.error("Error:", error);
   }
 };
+
 let debounceTimer;
 
 // Function to handle debouncing of search input
@@ -305,12 +313,15 @@ const debounceSearch = () => {
 };
 
 searchInput.addEventListener("input", debounceSearch);
+
+// changes - to " " as sqllite doesn't work with -
 function sanitizeInput(input) {
-  // Replace dashes with an empty string
+  // Replace dashes with a space
   return input.replace(/-/g, " ");
 }
+
+// add some styling to time picker
 function toggleTimePicker() {
-  const timePickerContent = document.getElementById("timePickerContent");
   if (timePickerContent.style.display === "block") {
     timePickerContent.style.display = "none";
   } else {
@@ -319,7 +330,6 @@ function toggleTimePicker() {
 }
 
 document.addEventListener("click", function (event) {
-  const timePickerContent = document.getElementById("timePickerContent");
   const selectedTime = document.getElementById("selectedTime");
 
   if (
@@ -330,10 +340,9 @@ document.addEventListener("click", function (event) {
   }
 });
 function displaySelectedTime() {
-  const timeRange = document.getElementById("timeRange");
   const selectedRangeText = document.getElementById("selectedRangeText");
-  const startTime = document.getElementById("startTime").value;
-  const endTime = document.getElementById("endTime").value;
+  const startTime = startTimeInput.value;
+  const endTime = endTimeInput.value;
 
   let selectedRange = timeRange.options[timeRange.selectedIndex].text;
   if (selectedRange === "Custom") {
@@ -344,19 +353,13 @@ function displaySelectedTime() {
   // toggleTimePicker(); // Hide the options after selection
 }
 
-const timePickerContent = document.getElementById("timePickerContent");
-
 timePickerContent.addEventListener("click", function (event) {
   event.stopPropagation(); // Stop the click event from propagating
 });
-const startTimeInput = document.getElementById("startTime");
-const endTimeInput = document.getElementById("endTime");
 
 startTimeInput.addEventListener("input", displaySelectedTime);
 endTimeInput.addEventListener("input", displaySelectedTime);
 // Add event listeners to focus and blur events on the search input
-
-const searchBox = document.getElementById("searchBox");
 
 searchInput.addEventListener("focus", function () {
   searchBox.classList.add("grayed-out"); // Add the class when the search input is focused
@@ -365,5 +368,3 @@ searchInput.addEventListener("focus", function () {
 searchInput.addEventListener("blur", function () {
   searchBox.classList.remove("grayed-out"); // Remove the class when the search input loses focus
 });
-
-const searchBtn = document.getElementById("searchBtn");
