@@ -60,16 +60,16 @@ func fetchColumnsHandler(w http.ResponseWriter, r *http.Request) {
 
 // comes from /logs endpoint
 func handleLogs(w http.ResponseWriter, r *http.Request){
-	fmt.Print("inside handle logs\n")
+	fmt.Println("Log receieved at",time.Now().Local())
 	var logEntry LogEntry
 	err := json.NewDecoder(r.Body).Decode(&logEntry)
 	if err!=nil{
 		http.Error(w,"Error parsing log entry",http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("Received log entry: %+v\n", logEntry)
+	// fmt.Printf("Received log entry: %+v\n", logEntry)
 	insertLog(logEntry)
-
+	fmt.Println()
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Log received \n"))
 }

@@ -10,10 +10,14 @@ import (
 )
 
 func initDbthings(){
+	fmt.Println("=======================================")
+
 	connectDB()
 	makeTable()
+	createIndexes()
 	connectSQLiteDB()
 	makeTableSQLite()
+
 }
 
 
@@ -50,6 +54,25 @@ func makeTable(){
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Table created if not present in Postgresql")
+	
+}
+
+func createIndexes(){
+	indexQuery := `
+		CREATE INDEX IF NOT EXISTS idx_id ON logs(id);
+		CREATE INDEX IF NOT EXISTS idx_level ON logs(level);
+		CREATE INDEX IF NOT EXISTS idx_ts ON logs(timestamp);
+		CREATE INDEX IF NOT EXISTS idx_resourceId ON logs(resourceId);
+		CREATE INDEX IF NOT EXISTS idx_comp_level_resourceId ON logs(level, resourceId);
+		CREATE INDEX IF NOT EXISTS idx_comp_level_ts ON logs(level, timestamp);
+	`
+	_, err := db.Exec(indexQuery)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Indexes created if not present in Postgresql")
 }
 
 func insertLog(logEntry LogEntry){
@@ -77,7 +100,7 @@ func connectSQLiteDB() {
 		log.Fatal(err)
 	}
 	sqliteDB = db
-	fmt.Println("Connected to sqlite3")
+	fmt.Println("Connected to sqlite")
 	
 }
 func makeTableSQLite(){
@@ -96,14 +119,9 @@ func makeTableSQLite(){
 	if err != nil {
 		log.Fatal(err)
 	}
-		var count int
-	err = sqliteDB.QueryRow("SELECT COUNT(*) FROM logs").Scan(&count)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	fmt.Println("Table created if not present in sqlite")
 
-	fmt.Printf("Number of rows: %d\n", count)
+
 }
 
 

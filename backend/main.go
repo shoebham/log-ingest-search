@@ -79,7 +79,11 @@ func main(){
 	http.HandleFunc("/columns",fetchColumnsHandler)
 	http.HandleFunc("/search",search)
 	http.HandleFunc("/searchRealTime", debounceAPIRequest(realTimeSearch))
-	fmt.Println("Listenting on port 3000")
+
+	fmt.Println("\n------------------------")
+	fmt.Println("Listenting on port 3000|")
+	fmt.Println("------------------------")
+
 	handler := corsMiddleware(http.DefaultServeMux)
 
 	// Start server with the CORS-wrapped handler
