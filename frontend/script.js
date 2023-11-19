@@ -264,26 +264,26 @@ function displayLogs(logs) {
 function updateTimeRange() {
   timeRange.addEventListener("change", function () {
     const selectedValue = this.value;
-    const now = new Date().toISOString().slice(0, 16); // Current date and time in YYYY-MM-DDTHH:mm format
+    const now = new Date().toISOString().slice(0, 19); // Current date and time in YYYY-MM-DDTHH:mm format
 
     switch (selectedValue) {
       case ".08":
         endTimeInput.value = now;
         startTimeInput.value = new Date(Date.now() - 0.08 * 60 * 60 * 1000)
           .toISOString()
-          .slice(0, 16);
+          .slice(0, 19);
         break;
       case "1":
         endTimeInput.value = now;
         startTimeInput.value = new Date(Date.now() - 60 * 60 * 1000)
           .toISOString()
-          .slice(0, 16); // 1 hour ago
+          .slice(0, 19); // 1 hour ago
         break;
       case "5":
         endTimeInput.value = now;
         startTimeInput.value = new Date(Date.now() - 5 * 60 * 60 * 1000)
           .toISOString()
-          .slice(0, 16); // 5 hours ago
+          .slice(0, 19); // 5 hours ago
         break;
       case "Forever":
         endTimeInput.value = "";
@@ -398,3 +398,5 @@ searchInput.addEventListener("focus", function () {
 searchInput.addEventListener("blur", function () {
   searchBox.classList.remove("grayed-out"); // Remove the class when the search input loses focus
 });
+
+setInterval(updateTimeRange, 1000);

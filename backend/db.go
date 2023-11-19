@@ -76,13 +76,23 @@ func createIndexes(){
 }
 
 func insertLog(logEntry LogEntry){
+ tx, err := db.Begin()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer tx.Rollback()
 
-	_,err:=db.Exec(`INSERT INTO logs (level,message,resourceId,timestamp,traceId,spanId,commit,metadata_parentResourceID)
+	 _, err = tx.Exec(`INSERT INTO logs (level,message,resourceId,timestamp,traceId,spanId,commit,metadata_parentResourceID)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
 	logEntry.Level,logEntry.Message,logEntry.ResourceID,logEntry.Timestamp,logEntry.TraceID,logEntry.SpanID,logEntry.Commit,logEntry.Metadata.ParentResourceID)
 	if err!=nil{
 		log.Fatal(err)
 	}
+	// Commit the transaction
+    err = tx.Commit()
+    if err != nil {
+        log.Fatal(err)
+    }
 	fmt.Println("Inserted to postgresql")
 	_,err=sqliteDB.Exec(`INSERT INTO logs_fts (level,message,resourceId,timestamp,traceId,spanId,"commit",metadata_parentResourceID)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
