@@ -39,28 +39,31 @@ for the query interface just open the index.html and your frontend will be ready
   - /search : this runs a search on the postgresql db
   - /searchRealTime this runs a search on the sqlite db 
 
+# System Design 
+![image](assets/system-design.png)
+
 ## Demo
 ### Server start
-<img width="1552" alt="image" src="https://github.com/shoebham/log-ingest-search/assets/25881429/5bc16be4-a6fe-497c-8044-624ae53986ef">
+<img width="1552" alt="image" src="assets/server-start.png">
 
 ### Sending a log
-<img width="1392" alt="image" src="https://github.com/shoebham/log-ingest-search/assets/25881429/1ea73e1c-8cd4-49b8-96e1-b9836bf0eaa0">
-<img width="1005" alt="image" src="https://github.com/shoebham/log-ingest-search/assets/25881429/0c397a44-0a7b-4b43-9482-f56d0e07802f">
+<img width="1392" alt="image" src="assets/sending-log.png">
+<img width="1005" alt="image" src="assets/cli.png">
 
 
 ### Query Interface
-<img width="1552" alt="image" src="https://github.com/shoebham/log-ingest-search/assets/25881429/62521bbe-fc2b-4d2b-8d18-4f49bedd7332">
+<img width="1552" alt="image" src="assets/query-interface.png">
 
 ### Searching a log
-<img width="1552" alt="image" src="https://github.com/shoebham/log-ingest-search/assets/25881429/9e6edd93-089b-44d4-a71b-0dd0dd938f0b">
+<img width="1552" alt="image" src="assets/searching-log.png">
 
 ### Filter search
-![filter-search](https://github.com/shoebham/log-ingest-search/assets/25881429/910b2184-865b-4779-8b22-8d29a14bae1b)
+![filter-search](assets/filter-search.gif)
 
 
 
 ### full text search
-![full-text-search](https://github.com/shoebham/log-ingest-search/assets/25881429/4df1a3f0-3c9c-42a4-ae33-d0400392d583)
+![full-text-search](assets/full-text-search.gif)
 
 
 
