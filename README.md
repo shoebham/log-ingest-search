@@ -1,4 +1,4 @@
-![filter-search](https://github.com/shoebham/log-ingest-search/assets/25881429/fbf59206-6a35-42ae-854b-b722496879a2)
+
 # Log Ingestor and Query Interface
 
 
