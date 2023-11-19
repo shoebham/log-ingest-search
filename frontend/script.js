@@ -73,6 +73,14 @@ function addParam() {
   valueInput.classList.add("value");
   valueInput.setAttribute("type", "text");
   valueInput.setAttribute("placeholder", "Enter value");
+
+  valueInput.onkeyup = () => {
+    if (valueInput.value == "") {
+      addSearchBtn.disabled = true;
+    } else {
+      addSearchBtn.disabled = false;
+    }
+  };
   newSearchParam.appendChild(valueInput);
 
   const removeButton = document.createElement("button");
@@ -85,6 +93,7 @@ function addParam() {
   isFirst = false;
   searchParameters.appendChild(newSearchParam);
   fetchColumns(columnSelect);
+
   columnSelect.onchange = () => {
     if (columnSelect.value == "Select an option") {
       operand.disabled = true;
@@ -93,17 +102,32 @@ function addParam() {
     } else {
       valueInput.disabled = false;
       operand.disabled = false;
-      addSearchBtn.disabled = false;
+      // addSearchBtn.disabled = false;
     }
   };
   columnSelect.dispatchEvent(new Event("change"));
 }
 
+// function checkParams() {
+//   const columnList = document.querySelectorAll("column");
+//   columnList.forEach((e) => {
+//     if (e.value == "Select an option") {
+//       operand.disabled = true;
+//       valueInput.disabled = true;
+//       addSearchBtn.disabled = true;
+//     } else {
+//       valueInput.disabled = false;
+//       operand.disabled = false;
+//       addSearchBtn.disabled = false;
+//     }
+//   });
+// }
+
 // Function to remove a search parameter
 function removeParam(button) {
-  console.log(button);
   const searchParam = button.parentElement;
   searchParam.remove();
+  checkParams();
 }
 
 //validates timestamps from datepicker, checks if one of them is empty or not
